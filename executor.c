@@ -5,8 +5,9 @@
 #include <sys/types.h>
 #include <errno.h>
 #include "executor.h"
+#include "jobs.h"
 
-int ejecutar_foreground(char *argv[]) {
+int ejecutar_comando(char *argv[], int en_background) {
     if (argv== NULL || argv[0]==NULL) {
         return 0;
     }
@@ -34,14 +35,20 @@ int ejecutar_foreground(char *argv[]) {
     } 
     else {
         //proceso padre (shell)
-        int status;
-
-        //la shell se bloquea y espera a que el hijo específico (pid) termine
-        //waitpid devuelve cuando el hijo cambia de estado (finaliza)
-        if (waitpid(pid, &status, 0) < 0) {
-            //manejo del caso si waitpid es interrumpido por una señal
-            if (errno != EINTR) {
-                perror("waitpid");
+        if (en_background) {
+            //no se bloquea con waitpid(), registra el job en la lista
+            agregar_job(pid, argv[0]);
+        }
+        else {
+            int status;
+            //la shell se bloquea y espera a que el hijo específico (pid) termine
+            //waitpid devuelve cuando el hijo cambia de estado (finaliza)
+            while (waitpid(pid, &status, 0) < 0) {
+                //manejo del caso si waitpid es interrumpido por una señal
+                if (errno != EINTR) {
+                    perror("waitpid");
+                    break;
+                }
             }
         }
     }
