@@ -1,4 +1,5 @@
 #include "pipes.h"
+#include "senales.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
