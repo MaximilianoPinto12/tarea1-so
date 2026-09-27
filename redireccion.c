@@ -16,7 +16,7 @@ void ejecutar_con_redireccion(char **args, char *archivo_entrada, char *archivo_
     pid_t pid=fork();
 
     if (pid<0){
-        //fork() fallo y no se pudo crear el proceso hijo
+        //fork() falló: no se pudo crear el proceso hijo
         perror("Error en fork");
         return;
     }
@@ -24,7 +24,7 @@ void ejecutar_con_redireccion(char **args, char *archivo_entrada, char *archivo_
     if (pid==0){
         //Codigo del proceso hijo
 
-        //Solo el proceso en foreground debe poder morir con Ctrl+C / Ctrl+\
+        //Solo el proceso en foreground debe poder morir con (Ctrl+C) y (Ctrl+\)
         //El de background conserva el SIG_IGN heredado de la shell
         if (!en_background){
             restaurar_senales_foreground();

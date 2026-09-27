@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
+#include <signal.h>
 #include <sys/wait.h>
 
 //Ejecutar una cadena de comandos conectadas por pipes
@@ -18,6 +19,13 @@ void ejecutar_pipe(int num_comandos, char ***comandos, int en_background){
     //asi no se le roba a la shell un hijo en background que le corresponde al handler de SIGCHLD
     pid_t pids[num_comandos];
     int lanzados=0;
+
+    //Se bloquea SIGCHLD hasta registrar el job (o terminar de esperar),
+    //para que el handler no recolecte hijos antes de tiempo
+    sigset_t bloqueo, previo;
+    sigemptyset(&bloqueo);
+    sigaddset(&bloqueo, SIGCHLD);
+    sigprocmask(SIG_BLOCK, &bloqueo, &previo);
 
     for (int i=0; i<num_comandos; i++){
         //Si no es el ultimo comando, se necesita un pipe para conectarlo con el siguiente
@@ -41,6 +49,9 @@ void ejecutar_pipe(int num_comandos, char ***comandos, int en_background){
         }
         if (pid==0){
             //Codigo del proceso hijo
+
+            //El hijo hereda la mascara con SIGCHLD bloqueado, se restaura antes del exec
+            sigprocmask(SIG_SETMASK, &previo, NULL);
 
             //Solo los procesos en foreground restauran las señales
             if (!en_background){
@@ -99,8 +110,7 @@ void ejecutar_pipe(int num_comandos, char ***comandos, int en_background){
         }
     }else{
         //Espera a que todos los procesos hijos terminen
-        //Se reintenta si una señal interrumpe (EINTR). Si el handler de SIGCHLD
-        //ya recolecto al hijo, waitpid falla con ECHILD y se sigue con el siguiente
+        //Se reintenta si una señal interrumpe (EINTR)
         for (int i=0; i<lanzados; i++){
             while (waitpid(pids[i], NULL, 0)<0){
                 if (errno!=EINTR){
@@ -109,4 +119,7 @@ void ejecutar_pipe(int num_comandos, char ***comandos, int en_background){
             }
         }
     }
+
+    //Se desbloquea SIGCHLD: si quedo alguno pendiente, el handler corre ahora
+    sigprocmask(SIG_SETMASK, &previo, NULL);
 }
