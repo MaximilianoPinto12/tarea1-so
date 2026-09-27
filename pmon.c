@@ -14,7 +14,7 @@ typedef struct{
     const char* estado_str;
     double porcentaje_cpu;
     long rss;
-}SnapshotTabla;
+}RegistroProceso;
 
 void manejador_alarma(int signum){
     (void)signum;
@@ -125,7 +125,7 @@ void ejecutar_pmon(ProcesoBG lista_procesos[],int cantidad_procesos,int segundos
             printf("\033c");
             printf("%-7s | %-15s | %-11s | %-12s | %-10s\n", "PID", "COMANDO", "ESTADO", "%CPU (aprox)", "RSS (KB)");
 
-            SnapshotTabla capturas[cantidad_procesos];
+            RegistroProceso capturas[cantidad_procesos];
             int cantidad_activos=0;
 
             for(int i=0;i<cantidad_procesos;i++){
@@ -166,7 +166,7 @@ void ejecutar_pmon(ProcesoBG lista_procesos[],int cantidad_procesos,int segundos
             for(int i=0;i<cantidad_activos-1;i++){
                 for(int j=0;j<cantidad_activos-i-1;j++){
                     if(capturas[j].porcentaje_cpu<capturas[j+1].porcentaje_cpu){
-                        SnapshotTabla temp=capturas[j];
+                        RegistroProceso temp=capturas[j];
                         capturas[j]=capturas[j+1];
                         capturas[j+1]=temp;
                     }
