@@ -69,10 +69,19 @@ int ejecutar_builtin(int argc, char *argv[]) {
     //pmon 
     if (strcmp(argv[0], "pmon")==0) {
         //valor por defecto
+        int hay_jobs=0;
+        for(int i=0;i<MAX_JOBS;i++){
+            if(lista_jobs[i].activo){
+                hay_jobs=1;
+            }
+        }
+        if(!hay_jobs){
+            printf("No hay procesos en background.\n");
+            return 1;
+        }
         int segundos = 2;
-
-        if (argc > 1) {
-            segundos = atoi(argv[1]);
+        if(argc>1){
+            segundos=atoi(argv[1]);
         }
 
         //llama a tu motor pasándole el arreglo de background de la shell

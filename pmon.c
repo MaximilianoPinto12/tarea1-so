@@ -125,13 +125,14 @@ long leer_rss(int pid){
 
 // Bucle principal de ejecución y renderizado del monitor
 void ejecutar_pmon(Job lista_procesos[],int cantidad_procesos,int segundos){
-    // Previene bloqueos del programa si no hay procesos o si el intervalo es inválido
-    if(cantidad_procesos<=0){
-        printf("no hay procesos en background");
-        return;
-    }
+    // Previene bloqueos del programa si el intervalo es inválido
     if(segundos<=0){
         segundos=2;
+    }
+
+    // Reinicia el histórico de CPU para evitar desbordamientos en ejecuciones sucesivas
+    for(int i = 0; i < cantidad_procesos; i++) {
+        lista_procesos[i].tiempo_anterior = 0;
     }
 
     // Configuración de las señales del sistema para el reloj y la interrupción
