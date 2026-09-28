@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "builtins.h"
+#include "pmon.h"
  
 int ejecutar_builtin(int argc, char *argv[]) {
     if (argc == 0 || argv[0] == NULL) {
@@ -65,7 +66,20 @@ int ejecutar_builtin(int argc, char *argv[]) {
         return 1;
     }
  
+    //pmon 
     if (strcmp(argv[0], "pmon")==0) {
+        //valor por defecto
+        int segundos = 2;
+
+        if (argc > 1) {
+            segundos = atoi(argv[1]);
+        }
+
+        //llama a tu motor pasándole el arreglo de background de la shell
+        ejecutar_pmon(jobs, MAX_JOBS, segundos);
+        
+        //indica que la shell ya lo manejó
+        return 1; 
     }
 
     //no es un comando interno, debe ejecutarse con fork()+execvp()
