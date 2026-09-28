@@ -60,6 +60,7 @@ const char* traducir_estado(char letra){
 }
 
 void leer_datos_proceso(int pid, char *comando, char *estado, unsigned long *utime, unsigned long *stime){
+    *estado='X';
     char ruta[256];
     char pid_texto[32];
 
@@ -74,7 +75,9 @@ void leer_datos_proceso(int pid, char *comando, char *estado, unsigned long *uti
         return;
     }
 
-    fscanf(archivo,"%*d (%[^)]) %c %*d %*d %*d %*d %*d %*u %*u %*u %*u %*u %lu %lu",comando,estado,utime,stime);
+    if(fscanf(archivo, "%*d (%[^)]) %c %*d %*d %*d %*d %*d %*u %*u %*u %*u %*u %lu %lu", comando, estado, utime, stime)!=4){
+        *estado='X';
+    }
     fclose(archivo);
 }
 
@@ -104,7 +107,15 @@ long leer_rss(int pid){
     return rss;
 }
 
-void ejecutar_pmon(ProcesoBG lista_procesos[],int cantidad_procesos,int segundos){
+void ejecutar_pmon(Job lista_procesos[],int cantidad_procesos,int segundos){
+    if(cantidad_procesos<=0){
+        printf("no hay procesos en background");
+        return;
+    }
+    if(segundos<=0){
+        segundos=2;
+    }
+
     struct sigaction sa_alrm;
     sa_alrm.sa_handler=manejador_alarma;
     sigemptyset(&sa_alrm.sa_mask);
@@ -118,6 +129,7 @@ void ejecutar_pmon(ProcesoBG lista_procesos[],int cantidad_procesos,int segundos
     sigaction(SIGINT, &sa_int, &sa_int_viejo);
     
     bandera_pmon_activo=1;
+    bandera_refresco=1;
 
     while(bandera_pmon_activo){
         if(bandera_refresco){
