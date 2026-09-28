@@ -76,7 +76,7 @@ int ejecutar_builtin(int argc, char *argv[]) {
         }
 
         //llama a tu motor pasándole el arreglo de background de la shell
-        ejecutar_pmon(jobs, MAX_JOBS, segundos);
+        ejecutar_pmon(lista_jobs, MAX_JOBS, segundos);
         
         //indica que la shell ya lo manejó
         return 1; 

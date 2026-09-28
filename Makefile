@@ -1,5 +1,11 @@
-mishell:mishell.c
-		gcc -Wall -Wextra -std=gnu11 -o mishell mishell.c pmon.c
+CC=gcc
+CFLAGS=-Wall -Wextra -std=gnu11
+SRCS=$(wildcard *.c)
+
+mishell: $(SRCS) $(wildcard *.h)
+	$(CC) $(CFLAGS) -o mishell $(SRCS)
 
 clean:
-		rm -f mishell
+	rm -f mishell
+
+.PHONY: clean
