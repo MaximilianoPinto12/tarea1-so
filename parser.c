@@ -57,6 +57,39 @@ static int es_operador(const char *t) {
            strcmp(t, "&") == 0;
 }
 
+//expansion de variables de entorno: al encontrar '$' seguido de un nombre
+//valido (letras, digitos, '_', sin empezar con digito), lo reemplaza por el
+//valor de getenv(). Si la variable no existe, se reemplaza por nada (cadena
+//vacia), igual que en bash. Un '$' que no es seguido de un nombre valido
+//(por ejemplo "precio: $5" o un "$" solo al final) se copia tal cual.
+//*pp queda apuntando despues del nombre consumido; *outp, despues de lo escrito.
+static void expandir_variable(const char **pp, char **outp) {
+    const char *p = *pp;
+    char *out = *outp;
+ 
+    p++; //salta el '$'
+    if (isalpha((unsigned char)*p) || *p == '_') {
+        char nombre[128];
+        int len = 0;
+        while ((isalnum((unsigned char)*p) || *p == '_') && len < (int)sizeof(nombre) - 1) {
+            nombre[len++] = *p++;
+        }
+        nombre[len] = '\0';
+ 
+        const char *valor = getenv(nombre);
+        if (valor != NULL) {
+            while (*valor) *out++ = *valor++;
+        }
+        //si valor es NULL (variable no definida), no se escribe nada
+    } else {
+        //"$" no seguido de un nombre valido: se deja el caracter literal
+        *out++ = '$';
+    }
+ 
+    *pp = p;
+    *outp = out;
+}
+
 int parsear_linea(const char *linea, char *tokens[], int quoted[], char *buf, int max_tokens) {
     int n = 0;
     char *out = buf;
@@ -84,9 +117,19 @@ int parsear_linea(const char *linea, char *tokens[], int quoted[], char *buf, in
                 if (*p == '"' || *p == '\'') {
                     char q = *p++;  //recuerda cual comilla abrio
                     quoted[n] = 1;
-                    while (*p && *p != q) *out++ = *p++;
+                    while (*p && *p != q) {
+                        //igual que en bash: $VAR se expande dentro de comillas
+                        //dobles, pero NO dentro de comillas simples
+                        if (q == '"' && *p == '$') {
+                            expandir_variable(&p, &out);
+                        } else {
+                            *out++ = *p++;
+                        }
+                    }
                     if (*p == '\0') return -1; //comilla sin cerrar
-                    p++;    //salta la comilla de cierre
+                    p++;   //salta la comilla de cierre
+                } else if (*p == '$') {
+                    expandir_variable(&p, &out);
                 } else {
                     *out++ = *p++;
                 }
@@ -98,6 +141,7 @@ int parsear_linea(const char *linea, char *tokens[], int quoted[], char *buf, in
     tokens[n] = NULL;
     return n;
 }
+
 int construir_comandos(char *tokens[], const int quoted[], int n, Comando *c) {
     memset(c, 0, sizeof(*c));
     int cmd = 0;  //indice del comando que se esta armando
