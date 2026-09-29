@@ -11,14 +11,34 @@ manejo de señales, además de un monitor de procesos propio (`pmon`) basado en 
 - `gcc` con soporte para `-std=gnu11`
 - `make`
 
+## Estructura del repositorio
+
+```
+tarea1-so/
+├── README.md
+└── src/
+    ├── Makefile
+    ├── mishell.c
+    ├── parser.c / parser.h
+    ├── builtins.c / builtins.h
+    ├── redireccion.c / redireccion.h
+    ├── pipes.c / pipes.h
+    ├── senales.c / senales.h
+    ├── jobs.c / jobs.h
+    └── pmon.c / pmon.h
+```
+
+Todo el código fuente y el `Makefile` están dentro de `src/`.
+
 ## Compilación
 
 ```bash
+cd src
 make
 ```
 
-Esto genera el ejecutable `mishell` en la raíz del proyecto, compilando todos los
-archivos `.c` con:
+Esto genera el ejecutable `mishell` dentro de `src/`, compilando todos los archivos
+`.c` con:
 
 ```
 gcc -Wall -Wextra -std=gnu11 -o mishell *.c
@@ -37,6 +57,8 @@ make clean
 ```bash
 ./mishell
 ```
+
+(desde dentro de `src/`, luego de compilar; o `./src/mishell` desde la raíz del repositorio).
 
 La shell muestra un prompt con el directorio de trabajo actual:
 
@@ -110,7 +132,7 @@ PID     | COMANDO         | ESTADO      | %CPU (aprox) | RSS (KB)
 
 Se sale de `pmon` con `Ctrl+C`, volviendo al prompt normal sin cerrar la shell.
 
-## Estructura del proyecto
+## Estructura del código (`src/`)
 
 | Archivo | Responsabilidad |
 |---|---|
